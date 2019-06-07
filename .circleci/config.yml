@@ -36,25 +36,6 @@ jobs:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-
-  yarn_lint:
-    <<: *defaults
-    steps:
-      - restore_cache:
-          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-      - run:
-          <<: *configurePackageCloud
-      - run: yarn
-      - run:
-          name: Run eslint and generate report
-          command: yarn lint
-      - store_test_results:
-          path: reports
-      - store_artifacts:
-          path: reports
-
   yarn_test:
     <<: *defaults
     steps:
@@ -100,10 +81,6 @@ workflows:
           context: packaging_and_deployment_variables
           requires:
             - checkout_code
-      - yarn_lint:
-          context: packaging_and_deployment_variables
-          requires:
-            - install_yarn_dependencies
     #   - yarn_test:
     #       context: packaging_and_deployment_variables
     #       requires:
