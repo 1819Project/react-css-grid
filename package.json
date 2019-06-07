@@ -7,7 +7,10 @@
     "prepublish": "babel src -d dist",
     "start": "webpack-dev-server",
     "build": "webpack -p",
-    "test": "nyc ava"
+    "test": "nyc ava",
+    "release:patch": "release-it --config='config/.release-patch.json'",
+    "release:minor": "release-it --config='config/.release-minor.json'",
+    "release:major": "release-it --config='config/.release-major.json'"
   },
   "keywords": [
     "react",
@@ -39,6 +42,7 @@
     "react-test-renderer": "^15.6.1",
     "react-x-ray": "^1.0.0-2",
     "refunk": "^1.0.0-2",
+    "release-it": "^12.3.0",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
   },
