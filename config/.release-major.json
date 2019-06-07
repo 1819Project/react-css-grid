@@ -1,0 +1,28 @@
+
+{
+  "non-interactive": true,
+  "increment": "major",
+  "src": {
+    "commit": true,
+    "commitMessage": "Version bump :rocket: v%s [ci skip]",
+    "tag": true,
+    "tagName": "v%s",
+    "tagAnnotation": "Version bump v%s",
+    "push": true,
+    "beforeStartCommand": false,
+    "afterReleaseCommand": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release v%s",
+    "preRelease": false,
+    "draft": false
+  },
+  "dist": {
+    "repo": false
+  }
+}
+

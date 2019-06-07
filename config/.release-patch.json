@@ -1,0 +1,28 @@
+
+{
+  "non-interactive": true,
+  "increment": "patch",
+  "src": {
+    "commit": true,
+    "commitMessage": "Version bump :arrow_heading_up: v%s [ci skip]",
+    "tag": true,
+    "tagName": "v%s",
+    "tagAnnotation": "Version bump v%s",
+    "push": true,
+    "beforeStartCommand": false,
+    "afterReleaseCommand": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": false,
+    "releaseName": "Release v%s",
+    "preRelease": false,
+    "draft": false
+  },
+  "dist": {
+    "repo": false
+  }
+}
+

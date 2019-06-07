@@ -1,0 +1,120 @@
+version: 2
+defaults: &defaults
+  working_directory: ~/react-css-grid
+  docker:
+    - image: circleci/node:8.10.0-browsers
+configurePackageCloud: &configurePackageCloud
+  name: Configure Packagecloud
+  command: |
+    echo always-auth=true >> .npmrc
+    echo registry=https://packagecloud.io/1819project/node-1819/npm/ >> .npmrc
+    echo //packagecloud.io/1819project/node-1819/npm/:_authToken=$PACKAGECLOUD_TOKEN >> .npmrc
+
+jobs:
+  checkout_code:
+    <<: *defaults
+    steps:
+      - checkout
+      - save_cache:
+          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/react-css-grid
+
+  install_yarn_dependencies:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          <<: *configurePackageCloud
+      - run:
+          name: Install dependencies via yarn
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+
+  yarn_lint:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          <<: *configurePackageCloud
+      - run: yarn
+      - run:
+          name: Run eslint and generate report
+          command: yarn lint
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: reports
+
+  yarn_test:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          <<: *configurePackageCloud
+      - run: yarn
+      - run:
+          name: Download Code Climate Test Reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Set up Code Climate Test Reporter
+          command: ./cc-test-reporter before-build
+      - run:
+          name: Run unit tests with Jest and generate coverage report
+          command: yarn test:ci
+      - run:
+          name: Publish Coverage Using Code Climate Test Reporter
+          command: ./cc-test-reporter after-build
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: reports
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          <<: *configurePackageCloud
+      - run: npm publish
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - checkout_code
+      - install_yarn_dependencies:
+          context: packaging_and_deployment_variables
+          requires:
+            - checkout_code
+      - yarn_lint:
+          context: packaging_and_deployment_variables
+          requires:
+            - install_yarn_dependencies
+    #   - yarn_test:
+    #       context: packaging_and_deployment_variables
+    #       requires:
+    #         - install_yarn_dependencies
+  publish:
+    jobs:
+      - deploy:
+          context: packaging_and_deployment_variables
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /^v[0-9]+(\.[0-9]+)*([-\.0-9a-zA-Z]+)?$/
