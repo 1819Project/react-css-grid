@@ -1,3 +1,4 @@
+
 version: 2
 defaults: &defaults
   working_directory: ~/react-css-grid
@@ -26,23 +27,42 @@ jobs:
       - restore_cache:
           key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: dependency-cache-{{ checksum yarn.lock }}
       - run:
           <<: *configurePackageCloud
       - run:
           name: Install dependencies via yarn
           command: yarn
       - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: dependency-cache-{{ checksum yarn.lock }}
           paths:
             - node_modules
+
+  yarn_lint:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: dependency-cache-{{ checksum yarn.lock }}
+      - run:
+          <<: *configurePackageCloud
+      - run: yarn
+      - run:
+          name: Run eslint and generate report
+          command: yarn lint
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: reports
+
   yarn_test:
     <<: *defaults
     steps:
       - restore_cache:
           key: repo-cache-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: dependency-cache-{{ checksum yarn.lock }}
       - run:
           <<: *configurePackageCloud
       - run: yarn
@@ -81,6 +101,10 @@ workflows:
           context: packaging_and_deployment_variables
           requires:
             - checkout_code
+      - yarn_lint:
+          context: packaging_and_deployment_variables
+          requires:
+            - install_yarn_dependencies
     #   - yarn_test:
     #       context: packaging_and_deployment_variables
     #       requires:
@@ -95,3 +119,4 @@ workflows:
             tags:
               only:
                 - /^v[0-9]+(\.[0-9]+)*([-\.0-9a-zA-Z]+)?$/
+

@@ -9,6 +9,7 @@
     "start": "webpack-dev-server",
     "build": "webpack -p",
     "test": "nyc ava",
+    "lint": "echo 0",
     "release:patch": "release-it --config='config/.release-patch.json'",
     "release:minor": "release-it --config='config/.release-minor.json'",
     "release:major": "release-it --config='config/.release-major.json'"
